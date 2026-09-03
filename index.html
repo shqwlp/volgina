@@ -32,6 +32,10 @@
     [data-nav-toggle] { display: flex !important; }
   }
   @keyframes stitch { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @media (hover: none) {
+    [data-hero-cta]:hover { background: transparent !important; color: #7A6743 !important; }
+    [data-hero-cta]:active { background: #C7AC7C !important; color: #FBFAF6 !important; }
+  }
   @media (max-width: 900px) {
     [data-hero-script] { display: none !important; }
     [data-hero-photo] { width: 62% !important; }
@@ -66,11 +70,11 @@
         <a href="#reviews" style="transition:color 300ms ease;color:{{ navColorReviews }}" style-hover="color:#B08D57">Отзывы</a>
       </nav>
       <button onClick="{{ toggleNav }}" aria-label="Меню" style="display:none;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #C3CBBF;background:transparent;cursor:pointer;flex-direction:column;gap:5px" data-nav-toggle="1">
-        <span style="display:block;width:18px;height:1px;background:#2F3A33"></span>
-        <span style="display:block;width:18px;height:1px;background:#2F3A33"></span>
+        <span style="display:block;width:18px;height:1px;background:#2F3A33;transition:transform 300ms ease;transform:{{ burgerTop }}"></span>
+        <span style="display:block;width:18px;height:1px;background:#2F3A33;transition:transform 300ms ease;transform:{{ burgerBottom }}"></span>
       </button>
     </div>
-    <nav data-nav-dropdown style="display:{{ navDropdownDisplay }};flex-direction:column;padding:6px clamp(20px,5vw,56px) 18px;gap:16px;font-family:Jost,Helvetica,sans-serif;font-weight:300;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#5D6B60;border-top:1px solid #DCE0D6">
+    <nav data-nav-dropdown style="display:{{ navDropdownDisplay }};position:absolute;left:0;right:0;top:100%;background:#F4F2EC;flex-direction:column;align-items:center;text-align:center;padding:18px clamp(20px,5vw,56px);gap:16px;border-bottom:1px solid #DCE0D6;font-family:Jost,Helvetica,sans-serif;font-weight:300;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#5D6B60;border-top:1px solid #DCE0D6">
       <a href="#about" onClick="{{ closeNav }}">Обо мне</a>
       <a href="#prices" onClick="{{ closeNav }}">Цены</a>
       <a href="#services" onClick="{{ closeNav }}">Услуги</a>
@@ -93,7 +97,7 @@
           <span style="font-family:Jost,Helvetica,sans-serif;font-weight:300;font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:#7A6743">15 лет на сцене</span>
         </div>
         <p data-anim="dissolve" data-d="240" style="margin:clamp(26px,3.6vw,44px) 0 0;font-family:Jost,Helvetica,sans-serif;font-weight:300;font-size:clamp(15px,1.6vw,17px);line-height:1.85;color:#4B5A4F;max-width:30ch">Создаю атмосферу, в которой хочется смеяться, танцевать и запоминать этот день.</p>
-        <a href="#contacts" data-anim="dissolve" data-d="320" style="display:inline-flex;align-items:center;gap:clamp(20px,3vw,40px);margin:clamp(26px,3.4vw,42px) 0 0;padding:clamp(15px,1.8vw,20px) clamp(22px,2.6vw,32px);border:1px solid #C7AC7C;font-family:Jost,Helvetica,sans-serif;font-weight:300;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#7A6743;transition:background 400ms ease,color 400ms ease" style-hover="background:#C7AC7C;color:#FBFAF6">Обсудить праздник <span style="font-size:14px">&#8594;</span></a>
+        <a href="#contacts" data-hero-cta data-anim="dissolve" data-d="320" style="display:inline-flex;align-items:center;gap:clamp(20px,3vw,40px);margin:clamp(26px,3.4vw,42px) 0 0;padding:clamp(15px,1.8vw,20px) clamp(22px,2.6vw,32px);border:1px solid #C7AC7C;font-family:Jost,Helvetica,sans-serif;font-weight:300;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#7A6743;transition:background 400ms ease,color 400ms ease" style-hover="background:#C7AC7C;color:#FBFAF6">Обсудить праздник <span style="font-size:14px">&#8594;</span></a>
       </div>
     </div>
 
@@ -227,6 +231,7 @@
         </a>
       </div>
       <button data-gallery-more onClick="{{ showMorePhotos }}" style="display:{{ moreBtnDisplay }};margin-top:clamp(20px,3vw,28px);font-family:Jost,Helvetica,sans-serif;font-weight:300;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:#2F3A33;background:transparent;border:1px solid #C3CBBF;padding:14px clamp(24px,4vw,34px);cursor:pointer">Смотреть ещё</button>
+      <button data-gallery-more onClick="{{ hidePhotos }}" style="display:{{ hideBtnDisplay }};margin-top:clamp(20px,3vw,28px);font-family:Jost,Helvetica,sans-serif;font-weight:300;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:#2F3A33;background:transparent;border:1px solid #C3CBBF;padding:14px clamp(24px,4vw,34px);cursor:pointer">Скрыть</button>
     </div>
   </div>
 
@@ -275,11 +280,21 @@ class Component extends DCLogic {
   componentDidUpdate() { this.syncInset(); }
   toggleNav = () => this.setState(s => ({ navOpen: !s.navOpen }));
   closeNav = () => this.setState({ navOpen: false });
-  showMorePhotos = () => this.setState({ showAllPhotos: true });
+  showMorePhotos = () => { this._galleryY = window.scrollY; this.setState({ showAllPhotos: true }); };
+  hidePhotos = () => this.setState({ showAllPhotos: false }, () => {
+    if (this._galleryY != null) window.scrollTo(0, this._galleryY);
+  });
   renderVals() {
     return { navDropdownDisplay: this.state.navOpen ? 'flex' : 'none', toggleNav: this.toggleNav, closeNav: this.closeNav,
       showMorePhotos: this.showMorePhotos, galleryExpanded: this.state.showAllPhotos ? 'yes' : 'no',
       moreBtnDisplay: this.state.showAllPhotos ? 'none' : 'inline-block',
+      hidePhotos: this.hidePhotos,
+      lightboxSrc: this.state.lightbox || false,
+      lightboxDisplay: this.state.lightbox ? 'flex' : 'none',
+      closeLightbox: () => this.setState({ lightbox: null }),
+      burgerTop: this.state.navOpen ? 'translateY(3px) rotate(45deg)' : 'none',
+      burgerBottom: this.state.navOpen ? 'translateY(-3px) rotate(-45deg)' : 'none',
+      hideBtnDisplay: this.state.showAllPhotos ? 'inline-block' : 'none',
       logoOpacity: this.state.pastHero ? 1 : 0,
       navColorAbout: this.state.activeSection === 'about' ? '#B08D57' : '#5D6B60',
       navColorServices: this.state.activeSection === 'services' ? '#B08D57' : '#5D6B60',
@@ -315,6 +330,8 @@ class Component extends DCLogic {
     window.addEventListener('scroll', this._onSpy, { passive: true });
     this._onSpy();
     document.addEventListener('click', e => {
+      const img = e.target.closest && e.target.closest('a[href$=".jpg"]');
+      if (img) { e.preventDefault(); return; }
       const a = e.target.closest && e.target.closest('a[href^="#"]');
       if (!a) return;
       const el = document.getElementById(a.getAttribute('href').slice(1));
